@@ -53,11 +53,10 @@ export { appCheck };
 // Initialize Firebase AI Logic with the GoogleAIBackend
 export const ai = getAI(app, { backend: new GoogleAIBackend() });
 
-// Get a reference to the generative model
-const modelName = import.meta.env.VITE_GEMINI_MODEL || "gemini-2.0-flash";
-export const getImproverModel = () => {
+export const getImproverModel = (customModelName?: string) => {
+  const selectedModel = customModelName || import.meta.env.VITE_GEMINI_MODEL || "gemini-2.0-flash";
   return getGenerativeModel(ai, {
-    model: modelName,
+    model: selectedModel,
     systemInstruction: "You are a professional text editing and translation engine. Your sole objective is to improve, refine, or translate input text into the target language with the specified tone/style. Keep the response content formatting exactly matching the user's intent. Return ONLY the final improved text. Never add markdown explanations, conversational wrappers, greetings, or meta-comments."
   });
 };

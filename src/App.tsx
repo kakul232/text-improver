@@ -292,7 +292,7 @@ ${inputText}`;
         cleanedOutput = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
       } else {
         // Option B: Fallback to Firebase AI Logic proxy (concealing key server-side)
-        const model = getImproverModel();
+        const model = getImproverModel(geminiModel);
         const result = await model.generateContent(prompt);
         cleanedOutput = result.response.text().trim();
       }
@@ -316,7 +316,12 @@ ${inputText}`;
       }
     } catch (err: any) {
       console.error('Gemini call error:', err);
-      setErrorMsg(err.message || 'Could not connect to AI service. Check your connection or API Key.');
+      const errMsg = err.message || '';
+      if (errMsg.includes('429') || errMsg.toLowerCase().includes('quota') || errMsg.toLowerCase().includes('limit')) {
+        setErrorMsg('Quota exceeded! Please click "+ Add Key" in the top-right header to switch models or connect your own free Gemini API key, then retry!');
+      } else {
+        setErrorMsg(errMsg || 'Could not connect to AI service. Check your connection or API Key.');
+      }
     } finally {
       setIsLoading(false);
     }
