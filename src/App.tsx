@@ -45,13 +45,9 @@ function App() {
     style: 'Professional & Formal'
   });
   
-  const [geminiApiKey, setGeminiApiKey] = useState<string>(() => {
-    return localStorage.getItem('lingowand_gemini_api_key') || '';
-  });
+  const [geminiApiKey, setGeminiApiKey] = useState<string>('');
   const [isKeyModalOpen, setIsKeyModalOpen] = useState(false);
-  const [geminiModel, setGeminiModel] = useState<string>(() => {
-    return localStorage.getItem('lingowand_gemini_model') || 'gemini-2.0-flash';
-  });
+  const [geminiModel, setGeminiModel] = useState<string>('gemini-2.0-flash');
   
   const [isLoading, setIsLoading] = useState(false);
   const [isHistoryLoading, setIsHistoryLoading] = useState(false);
@@ -67,26 +63,39 @@ function App() {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
+      
+      const keySuffix = currentUser ? currentUser.uid : 'guest';
+      const userKeyName = `lingowand_gemini_api_key_${keySuffix}`;
+      const userModelName = `lingowand_gemini_model_${keySuffix}`;
+      
+      // Load user-scoped model preference
+      const savedModel = localStorage.getItem(userModelName) || 'gemini-2.0-flash';
+      setGeminiModel(savedModel);
+
       if (currentUser) {
         try {
           const dbKey = await getUserApiKey(currentUser.uid);
-          const localKey = localStorage.getItem('lingowand_gemini_api_key') || '';
+          const localKey = localStorage.getItem(userKeyName) || '';
 
-          if (dbKey && !localKey) {
+          if (dbKey) {
             // Sync database key to local storage
-            localStorage.setItem('lingowand_gemini_api_key', dbKey);
+            localStorage.setItem(userKeyName, dbKey);
             setGeminiApiKey(dbKey);
             showToast('Synced API Key from your profile');
-          } else if (localKey && !dbKey) {
+          } else if (localKey) {
             // Backup local key to database
             await saveUserApiKey(currentUser.uid, localKey);
-          } else if (localKey && dbKey && localKey !== dbKey) {
-            // If keys differ, save the local one to Firestore to keep updated
-            await saveUserApiKey(currentUser.uid, localKey);
+            setGeminiApiKey(localKey);
+          } else {
+            setGeminiApiKey('');
           }
         } catch (err) {
           console.error('Failed to sync API key on login:', err);
         }
+      } else {
+        // Load guest API key
+        const guestKey = localStorage.getItem(userKeyName) || '';
+        setGeminiApiKey(guestKey);
       }
     });
     return unsubscribe;
@@ -188,7 +197,8 @@ function App() {
   // API Key handlers
   const handleSaveKey = async (newKey: string) => {
     setGeminiApiKey(newKey);
-    localStorage.setItem('lingowand_gemini_api_key', newKey);
+    const keySuffix = user ? user.uid : 'guest';
+    localStorage.setItem(`lingowand_gemini_api_key_${keySuffix}`, newKey);
     if (user) {
       try {
         await saveUserApiKey(user.uid, newKey);
@@ -201,7 +211,8 @@ function App() {
 
   const handleDeleteKey = async () => {
     setGeminiApiKey('');
-    localStorage.removeItem('lingowand_gemini_api_key');
+    const keySuffix = user ? user.uid : 'guest';
+    localStorage.removeItem(`lingowand_gemini_api_key_${keySuffix}`);
     if (user) {
       try {
         await saveUserApiKey(user.uid, '');
@@ -214,7 +225,8 @@ function App() {
 
   const handleChangeModel = (model: string) => {
     setGeminiModel(model);
-    localStorage.setItem('lingowand_gemini_model', model);
+    const keySuffix = user ? user.uid : 'guest';
+    localStorage.setItem(`lingowand_gemini_model_${keySuffix}`, model);
     showToast(`Model switched to ${model}`);
   };
 
