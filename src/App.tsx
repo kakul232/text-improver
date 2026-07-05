@@ -20,7 +20,8 @@ import {
   googleProvider, 
   db, 
   saveUserApiKey, 
-  getUserApiKey 
+  getUserApiKey,
+  getImproverModel
 } from './firebase';
 import { Header } from './components/Header';
 import { TextInput } from './components/TextInput';
@@ -49,7 +50,7 @@ function App() {
   });
   const [isKeyModalOpen, setIsKeyModalOpen] = useState(false);
   const [geminiModel, setGeminiModel] = useState<string>(() => {
-    return localStorage.getItem('lingowand_gemini_model') || 'gemini-1.5-flash';
+    return localStorage.getItem('lingowand_gemini_model') || 'gemini-2.0-flash';
   });
   
   const [isLoading, setIsLoading] = useState(false);
@@ -224,12 +225,6 @@ function App() {
       return;
     }
 
-    if (!geminiApiKey) {
-      setErrorMsg('Please connect your Gemini API Key first.');
-      setIsKeyModalOpen(true);
-      return;
-    }
-
     setIsLoading(true);
     setErrorMsg(null);
     setOutputText('');
@@ -257,31 +252,41 @@ Instructions:
 Text to process:
 ${inputText}`;
 
-      const modelName = geminiModel;
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1/models/${modelName}:generateContent?key=${geminiApiKey}`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }]
-          })
+      let cleanedOutput = '';
+
+      if (geminiApiKey) {
+        // Option A: Direct HTTP call using user's custom API Key
+        const modelName = geminiModel;
+        const response = await fetch(
+          `https://generativelanguage.googleapis.com/v1/models/${modelName}:generateContent?key=${geminiApiKey}`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: prompt }] }]
+            })
+          }
+        );
+
+        if (!response.ok) {
+          const errData = await response.json().catch(() => ({}));
+          const message = errData?.error?.message || `HTTP Error ${response.status}`;
+          throw new Error(message);
         }
-      );
 
-      if (!response.ok) {
-        const errData = await response.json().catch(() => ({}));
-        const message = errData?.error?.message || `HTTP Error ${response.status}`;
-        throw new Error(message);
+        const data = await response.json();
+        cleanedOutput = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
+      } else {
+        // Option B: Fallback to Firebase AI Logic proxy (concealing key server-side)
+        const model = getImproverModel();
+        const result = await model.generateContent(prompt);
+        cleanedOutput = result.response.text().trim();
       }
-
-      const data = await response.json();
-      const cleanedOutput = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
       
       if (!cleanedOutput) {
-        throw new Error('Received an empty response from Gemini. Verify your API Key and try again.');
+        throw new Error('Received an empty response from Gemini. Verify your setup and try again.');
       }
 
       setOutputText(cleanedOutput);

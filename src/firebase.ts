@@ -54,7 +54,7 @@ export { appCheck };
 export const ai = getAI(app, { backend: new GoogleAIBackend() });
 
 // Get a reference to the generative model
-const modelName = import.meta.env.VITE_GEMINI_MODEL || "gemini-1.5-flash";
+const modelName = import.meta.env.VITE_GEMINI_MODEL || "gemini-2.0-flash";
 export const getImproverModel = () => {
   return getGenerativeModel(ai, {
     model: modelName,
