@@ -9,7 +9,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install dependencies and build
-        run: npm ci && npm run build
+        run: |
+          rm -f package-lock.json
+          npm install
+          npm run build
       - name: Deploy to Firebase Hosting
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
