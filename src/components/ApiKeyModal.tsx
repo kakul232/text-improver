@@ -133,6 +133,22 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
     return `${key.slice(0, 6)}••••••••${key.slice(-4)}`;
   };
 
+  const getModelLabel = (model: string) => {
+    const lower = model.toLowerCase();
+    let tier = '';
+    if (lower.includes('pro')) {
+      tier = 'Paid (Pro)';
+    } else if (lower.includes('ultra')) {
+      tier = 'Paid (Ultra)';
+    } else if (lower.includes('flash')) {
+      tier = 'Free Tier';
+    } else {
+      tier = 'Standard';
+    }
+    return `${model} (${tier})`;
+  };
+
+
   return (
     <>
       {/* Backdrop */}
@@ -323,7 +339,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
             >
               {availableModels.map((model) => (
                 <option key={model} value={model}>
-                  {model}
+                  {getModelLabel(model)}
                 </option>
               ))}
             </select>

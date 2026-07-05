@@ -453,18 +453,20 @@ textarea::placeholder {
   }
   
   .app-container {
-    padding-bottom: 80px; /* Space for sticky/bottom action button */
+    padding-bottom: 24px;
   }
 
   .bottom-action-container {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    padding: 16px;
-    background: linear-gradient(to top, rgba(11, 12, 16, 1) 70%, rgba(11, 12, 16, 0) 100%);
-    backdrop-filter: blur(4px);
-    z-index: 10;
+    position: static;
+    padding: 8px 0 16px 0;
+    background: transparent;
+    backdrop-filter: none;
+    z-index: auto;
+  }
+
+  .select-wrapper {
+    flex-direction: column;
+    gap: 12px;
   }
   
   .btn-primary.sticky-mobile {
@@ -483,5 +485,30 @@ textarea::placeholder {
   
   .drawer.open {
     transform: translateY(0);
+  }
+  
+  .hide-mobile {
+    display: none !important;
+  }
+  
+  .install-btn, .add-key-btn {
+    padding: 8px !important;
+    width: 40px !important;
+    height: 40px !important;
+    min-height: 40px !important;
+    min-width: 40px !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 0 !important;
+  }
+
+  .install-btn svg, .add-key-btn svg {
+    margin: 0 !important;
+  }
+
+  .toast-container {
+    bottom: 24px !important;
   }
 }

@@ -52,7 +52,7 @@ export const Header: React.FC<HeaderProps> = ({
         {/* PWA Install Button */}
         {isInstallable && (
           <button
-            className="btn-secondary"
+            className="btn-secondary install-btn"
             onClick={onInstall}
             title="Install App"
             style={{ padding: '8px 12px', minHeight: '40px' }}
@@ -74,7 +74,7 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
         ) : (
           <button
-            className="btn-primary"
+            className="btn-primary add-key-btn"
             onClick={onOpenKeySettings}
             title="Add Gemini API Key"
             style={{
@@ -86,8 +86,8 @@ export const Header: React.FC<HeaderProps> = ({
               boxShadow: '0 0 10px rgba(245, 158, 11, 0.3)'
             }}
           >
-            <Key size={14} />
-            <span>+ Add Key</span>
+            <Key size={14} style={{ marginRight: '2px' }} />
+            <span className="hide-mobile">+ Add Key</span>
           </button>
         )}
 
